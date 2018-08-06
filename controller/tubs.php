@@ -29,6 +29,9 @@ class ControllerCatalogTubs extends Controller {
 			$order = 'ASC';
 		}
 
+
+		
+
 		if (isset($this->request->get['page'])) {
 			$page = $this->request->get['page'];
 		} else {
@@ -48,6 +51,8 @@ class ControllerCatalogTubs extends Controller {
 		if (isset($this->request->get['page'])) {
 			$url .= '&page=' . $this->request->get['page'];
 		}
+
+		$url .= '&table=i177';
 
 		$data['breadcrumbs'] = array();
 
@@ -131,6 +136,8 @@ class ControllerCatalogTubs extends Controller {
 			$url .= '&order=ASC';
 		}
 
+
+
 		if (isset($this->request->get['page'])) {
 			$url .= '&page=' . $this->request->get['page'];
 		}
@@ -174,6 +181,8 @@ class ControllerCatalogTubs extends Controller {
 
 
 	protected function getForm() {
+
+
 		$data['heading_title'] = $this->language->get('heading_title');
 
 		$data['text_form'] = !isset($this->request->get['manufacturer_id']) ? $this->language->get('text_add') : $this->language->get('text_edit');
@@ -226,6 +235,11 @@ class ControllerCatalogTubs extends Controller {
 		if (isset($this->request->get['page'])) {
 			$url .= '&page=' . $this->request->get['page'];
 		}
+
+		if (isset($this->request->get['table'])) {
+			$url .= '&table=' . $this->request->get['table'];
+		}
+
 
 		$data['breadcrumbs'] = array();
 
@@ -309,8 +323,35 @@ class ControllerCatalogTubs extends Controller {
 
 		$this->load->model('catalog/tubs');
 
+
+		$xmlDB = "<database>
+		<object table='i177'>
+		   
+		    <field key='selector_switch_a' dbtype='varchar' />
+		    <field key='selector_switch_b' dbtype='varchar' />
+		    <field key='filament' dbtype='int' />
+		   
+		</object>
+		<object table='22a'>
+		   
+		    <field key='selector_switch_a' dbtype='varchar' />
+		    <field key='selector_switch_b' dbtype='varchar' />
+		    <field key='filament' dbtype='varchar' />
+		   
+		</object>
+
+		</database>";
+
+		$xmlArr = new SimpleXMLElement($xmlDB);
+		
+		echo '<pre>';
+		print_r($xmlArr->object[0]->field[1]);
+		echo '</pre>';
+		
+
+
 		if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
-			$this->model_catalog_tubs->addTubs($this->request->post);
+			$this->model_catalog_tubs->addTubs($this->request->post, $xmlArr, $this->request->get['table']);
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -328,7 +369,7 @@ class ControllerCatalogTubs extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true));
+			//$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true));
 		}
 
 		$this->getForm();

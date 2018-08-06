@@ -9,9 +9,6 @@ class ModelCatalogTubs extends Model {
 
 		$sort_data = array(
 			'tube_type',
-			'selector_switch_b,',
-			'selector_switch_a',
-			'filament'
 		);
 
 		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
@@ -37,7 +34,7 @@ class ModelCatalogTubs extends Model {
 
 			$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
 		}
-		echo $sql;
+		
 		$query = $this->db->query($sql);
 
 		return $query->rows;
@@ -56,7 +53,37 @@ class ModelCatalogTubs extends Model {
 	}
 
 
-	public function addTubs($data) {
+	public function addTubs($data, $xml, $table_name) {
+
+		echo $table_name;
+		$indexTable = 0;
+		for($i=0; $i <= count($xml->object); $i++) {
+			if($xml->object[$i]['table'] == $table_name) {
+				$indexTable = $i;
+				break;
+			}
+		}
+
+		echo $indexTable;
+		$buffer = 0; // не получается вставить динамически имя переменной как ${$type['key']}, поэтому сделал эту переменную как буфер.
+		foreach ($xml->object[$indexTable]->field as $field) {
+			$buffer = $field['key'];
+			if($field['dbtype'] == 'int'){
+				${$buffer} = $data[$buffer];
+			}else{
+				echo '<pre>';
+				print_r($field['key']);
+				echo '</pre>';
+				${$buffer} = $data[$buffer];
+				 	
+			}
+		}
+		
+		print_r($xml->object[0]->field[1]['key']);
+		
+		
+
+		
 
 		$tube_type         = $this->db->escape($data['tube_type']);
 		$sort_order		   = $this->db->escape($data['sort_order']);
