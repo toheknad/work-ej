@@ -52,7 +52,7 @@ class ControllerCatalogTubs extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$url .= '&table=i177';
+		$url .= '&table=tubs_1';
 
 		$data['breadcrumbs'] = array();
 
@@ -70,6 +70,7 @@ class ControllerCatalogTubs extends Controller {
 		$data['delete'] = $this->url->link('catalog/tubs/delete', 'token=' . $this->session->data['token'] . $url, true);
 
 		$data['tubs'] = array();
+		$data['arr_rows'] = array(); // передаем в tpl массив со строками
 
 		$filter_data = array(
 			'sort'  => $sort,
@@ -79,20 +80,53 @@ class ControllerCatalogTubs extends Controller {
 		);
 
 		
-        $tubs_total = $this->model_catalog_tubs->getTotalTubs();
-		$results = $this->model_catalog_tubs->getTubs($filter_data);
+        $tubs_total = $this->model_catalog_tubs->getTotalTubs($this->request->get['table']);
+		$results = $this->model_catalog_tubs->getTubs($filter_data, $this->request->get['table']);
 
+		$xmlArr = $this->xml();
+		$table_rows = $this->xml_get_rows($xmlArr, $this->request->get['table']);
+
+		$indexRows = 0; // для того чтобы отслеживать в какой товар мы добавляем
+
+		$arr_rows_for_tpl = array(); // будет использовать в tpl как id для $tubs;
+		$index_table_rows = 0; // для вставки элементов массива  $arr_rows_for_tpl с ключом в виде (1)(2), чтобы через счетчик  получить их в tpl
+		foreach ($table_rows as $value) {
+			
+			$arr_rows_for_tpl[$index_table_rows] = $value;
+			$index_table_rows += 1;
+		}
+
+		$arr_rows_for_tpl[count($table_rows)] = 'tube_id'; // добавляем общие поля для всех таблиц
+		$arr_rows_for_tpl[count($table_rows) + 1] = 'tube_tupe';// получается глупо, нужно будет потом изменить.
+		$arr_rows_for_tpl[count($table_rows) + 2] = 'edit';
+		
+		$data['arr_rows'] = $arr_rows_for_tpl;
 		foreach ($results as $result) {
+
+			
+
 			$data['tubs'][] = array(
+		
 				'tube_id' => $result['tube_id'],
 				'tube_type' => $result['tube_type'],
-				'selector_switch_a'            => $result['selector_switch_a'],
-				'selector_switch_b'      => $result['selector_switch_b'],
-				'filament'  => $result['filament'],
-				'sort_order'      => $result['sort_order'],
 				'edit'            => $this->url->link('catalog/tubs/edit', 'token=' . $this->session->data['token'] . '&tubs_id=' . $result['tube_id'] . $url, true)
 			);
+
+				for ($i = 0; $i < count($table_rows) ; $i++) { 
+
+					$name = $table_rows[$i];
+					$value =  $result["$table_rows[$i]"];
+					$data['tubs'][$indexRows]["$name"] = $value;
+				}
+				
+				$indexRows = $indexRows + 1;
 		}
+
+		echo '<pre>'; 
+		print_r ($arr_rows_for_tpl);
+		echo '</pre>';
+		
+
 
 		$data['heading_title'] = $this->language->get('heading_title');
 
@@ -262,7 +296,7 @@ class ControllerCatalogTubs extends Controller {
 		$data['cancel'] = $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true);
 
 		if (isset($this->request->get['tubs_id']) && ($this->request->server['REQUEST_METHOD'] != 'POST')) {
-			$tubs_info = $this->model_catalog_tubs->getTub($this->request->get['tubs_id']);
+			$tubs_info = $this->model_catalog_tubs->getTub($this->request->get['tubs_id'], $this->request->get['table'] );
 		}
 
 		$data['token'] = $this->session->data['token'];
@@ -325,24 +359,24 @@ class ControllerCatalogTubs extends Controller {
 
 
 		$xmlDB = "<database>
-		<object table='i177'>
+		<object table='tubs_1'>
 		   
 		    <field key='selector_switch_a' dbtype='varchar' />
 		    <field key='selector_switch_b' dbtype='varchar' />
 		    <field key='filament' dbtype='int' />
 		   
 		</object>
-		<object table='22a'>
+		<object table='tubs_2'>
 		   
-		    <field key='selector_switch_a' dbtype='varchar' />
-		    <field key='selector_switch_b' dbtype='varchar' />
-		    <field key='filament' dbtype='varchar' />
+		    <field key='param1' dbtype='varchar' />
+		    <field key='param2' dbtype='varchar' />
+		    <field key='filament' dbtype='int' />
 		   
 		</object>
 
 		</database>";
 
-		$xmlArr = new SimpleXMLElement($xmlDB);
+		$xmlArr = $this->xml();
 		
 		echo '<pre>';
 		print_r($xmlArr->object[0]->field[1]);
@@ -375,6 +409,49 @@ class ControllerCatalogTubs extends Controller {
 		$this->getForm();
 	}
 
+	public function xml() {
+
+		$xmlDB = "<database>
+		<object table='tubs_1'>
+		   
+		    <field key='selector_switch_a' dbtype='varchar' />
+		    <field key='selector_switch_b' dbtype='varchar' />
+		    <field key='filament' dbtype='int' />
+		   
+		</object>
+		<object table='tubs_2'>
+		   
+		    <field key='param1' dbtype='varchar' />
+		    <field key='param2' dbtype='varchar' />
+		    <field key='filament' dbtype='int' />
+		   
+		</object>
+
+		</database>";
+
+		return $xmlArr = new SimpleXMLElement($xmlDB);
+		
+	}
+
+	public function xml_get_rows($xml,$table_name) {
+		$buffer = 0; // не получается вставить динамически имя переменной как ${$type['key']}, поэтому сделал эту переменную как буфер.
+
+		$indexTable = 0;
+		for($i=0; $i <= count($xml->object); $i++) {
+			if($xml->object[$i]['table'] == $table_name) {
+				$indexTable = $i;
+				break;
+			}
+		}
+
+		foreach ($xml->object[$indexTable]->field as $field) {
+
+			$arr_rows[] = $field['key'];
+							 		
+		}
+
+		return $arr_rows;
+	}
 
 	public function edit() {
 		$this->load->language('catalog/tubs');

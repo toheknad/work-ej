@@ -40,42 +40,81 @@
                     <?php } else { ?>
                     <a href="<?php echo $sort_tube_type; ?>">Tubs Type</a>
                     <?php } ?></td>
-                  <td class="text-right"><?php if ($sort == 'selector_switch_a') { ?>
-                    <a href="<?php echo $sort_selector_switch_a; ?>" class="<?php echo strtolower($order); ?>">Selector switch A</a>
-                    <?php } else { ?>
+                    <? /*php 
+                      $result = '';
+                        for($i=0; $i < count($arr_rows); $i++) {
+
+                        if($tub == $arr_rows['4']) {
+                          continue;
+                        } else {
+                         $result .= '<td class="text-right">
+                                    <a href="<?php echo $sort_selector_switch_a; ?>">Selector switch A</a>
+                                    </td>';
+                        }
+                      }
+
+                      echo $result;
+                      echo count($arr_rows)
+                        */
+                    ?>
+                  <td class="text-right">
                     <a href="<?php echo $sort_selector_switch_a; ?>">Selector switch A</a>
-                    <?php } ?></td>
+                   </td>
 
-                    <td class="text-right"><?php if ($sort == 'selector_switch_b') { ?>
-                    <a href="<?php echo $sort_selector_switch_b; ?>" class="<?php echo strtolower($order); ?>">Selector switch B</a>
-                    <?php } else { ?>
+                    <td class="text-right">
                     <a href="<?php echo $sort_selector_switch_b; ?>">Selector switch B</a>
-                    <?php } ?></td>
+                    </td>
 
-                     <td class="text-right"><?php if ($sort == 'filament') { ?>
-                    <a href="<?php echo $sort_filament; ?>" class="<?php echo strtolower($order); ?>">Filament</a>
-                    <?php } else { ?>
+                     <td class="text-right">
                     <a href="<?php echo $sort_filament; ?>">Filament</a>
-                    <?php } ?></td>
+                    </td>
 
                   <td class="text-right"><?php echo $column_action; ?></td>
                 </tr>
               </thead>
               <tbody>
+
                 <?php  if ($tubs) { ?>
                 <?php foreach ($tubs as $tub) { ?>
                 <tr>
-                  
+                   <?php 
+
+                       
+
+
+                        echo "<pre>";
+                          print_r ($tub);
+                        echo "</pre>";
+                      
+                      
+                   ?>
+
                   <td class="text-center"><?php if (in_array($tub['tube_id'], $selected)) { ?>
                     <input type="checkbox" name="selected[]" value="<?php echo $tub['tube_id']; ?>" checked="checked" />
                     <?php } else { ?>
                     <input type="checkbox" name="selected[]" value="<?php echo $tub['tube_id']; ?>" />
                     <?php } ?></td>
-                  <td class="text-left"><?php echo $tub['tube_type']; ?></td>
+
+                      <td class="text-left"><?php echo $tub['tube_type']; ?></td>
+
+                       <?php /* 
+                        for($i=0; $i < count($arr_rows); $i++) {
+
+                        if($tub == $arr_rows['4']) {
+                          continue;
+                        } else {
+                         $result .= '<td class="text-right"><?php echo $tub[]; ?></td>'
+                        }
+                      }
+                        */
+                    ?>
+                  
                   <td class="text-right"><?php echo $tub['selector_switch_a']; ?></td>
+                  
                   <td class="text-right"><?php echo $tub['selector_switch_b']; ?></td>
-                  <td class="text-right"><?php echo $tub['filament']; ?></td>
+                  <td class="text-right"><?php echo $tub['filament'];  ?></td>
                   <td class="text-right"><a href="<?php echo $tub['edit']; ?>" data-toggle="tooltip" title="<?php echo $button_edit; ?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a></td>
+
                 </tr>
                 <?php } ?>
                 <?php } else { ?>
