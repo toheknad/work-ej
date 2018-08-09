@@ -26,9 +26,9 @@
       <div class="panel-body">
         <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-manufacturer" class="form-horizontal">
           <div class="form-group required">
-            <label class="col-sm-2 control-label" for="input-name">Tube Type</label>
+            <label class="col-sm-2 control-label" for="input-name">Tube Name</label>
             <div class="col-sm-10">
-              <input type="text" name="tube_type" value="<?php echo $tube_type; ?>"  id="input-name" class="form-control" />
+              <input type="text" name="tube_name" value="<?php echo $tube_name; ?>"  id="input-name" class="form-control" />
               <?php if ($error_name) { ?>
               <div class="text-danger"><?php echo $error_name; ?></div>
               <?php } ?>

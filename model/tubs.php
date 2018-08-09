@@ -5,16 +5,18 @@ class ModelCatalogTubs extends Model {
 	public function getTubs($data = array(), $table_name) {
 		$sql = "SELECT * FROM " . DB_PREFIX . "$table_name";
 
-		
+		if (!empty($data['filter_tube_name'])) {
+			$sql .= " WHERE  tube_name LIKE '" . $this->db->escape($data['filter_tube_name']) . "%'";
+		}
 
 		$sort_data = array(
-			'tube_type',
+			'tube_name',
 		);
 
 		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
 			$sql .= " ORDER BY " . $data['sort'];
 		} else {
-			$sql .= " ORDER BY tube_type";
+			$sql .= " ORDER BY tube_name";
 		}
 
 		if (isset($data['order']) && ($data['order'] == 'DESC')) {
@@ -34,9 +36,11 @@ class ModelCatalogTubs extends Model {
 
 			$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
 		}
+
+		echo $sql;
 		
 		$query = $this->db->query($sql);
-
+		
 		return $query->rows;
 	}
 
@@ -65,11 +69,11 @@ class ModelCatalogTubs extends Model {
 			}
 		}
 
-		$tube_type         = $this->db->escape($data['tube_type']);	
+		$tube_name         = $this->db->escape($data['tube_name']);	
 
 		$sql = "
 		INSERT INTO " . DB_PREFIX . "$table_name 
-		SET tube_type = '$tube_type'";
+		SET tube_name = '$tube_name'";
 
 		foreach ($xml->object[$indexTable]->field as $field) {
 			$name = $field['key'];
@@ -104,12 +108,12 @@ class ModelCatalogTubs extends Model {
 			}
 		}
 
-		$tube_type         = $this->db->escape($data['tube_type']);
+		$tube_name        = $this->db->escape($data['tube_name']);
 		
 
 		$sql = "
 		UPDATE ". DB_PREFIX . "$table_name 
-		SET tube_type = '$tube_type'";
+		SET tube_name = '$tube_name'";
 
 		foreach ($xml->object[$indexTable]->field as $field) {
 			$name = $field['key'];

@@ -19,7 +19,7 @@ class ControllerCatalogTubs extends Controller {
 		if (isset($this->request->get['sort'])) {
 			$sort = $this->request->get['sort'];
 		} else {
-			$sort = 'tube_type';
+			$sort = 'tube_name';
 		}
 
 
@@ -28,6 +28,13 @@ class ControllerCatalogTubs extends Controller {
 		} else {
 			$order = 'ASC';
 		}
+
+		if (isset($this->request->get['filter_tube_name'])) {
+			$filter_tube_name = $this->request->get['filter_tube_name'];
+		} else {
+			$filter_tube_name = null;
+		}
+
 
 
 		
@@ -56,6 +63,10 @@ class ControllerCatalogTubs extends Controller {
 			$url .= '&table=' . $this->request->get['table'];
 		} else $url .= '&table=tubs_1';
 
+		if (isset($this->request->get['filter_tube_name'])) {
+			$url .= '&filter_tube_name=' . $this->request->get['filter_tube_name'];
+		}
+
 		$data['breadcrumbs'] = array();
 
 		$data['breadcrumbs'][] = array(
@@ -77,6 +88,7 @@ class ControllerCatalogTubs extends Controller {
 		$filter_data = array(
 			'sort'  => $sort,
 			'order' => $order,
+			'filter_tube_name' => $filter_tube_name,
 			'start' => ($page - 1) * $this->config->get('config_limit_admin'),
 			'limit' => $this->config->get('config_limit_admin')
 		);
@@ -94,15 +106,19 @@ class ControllerCatalogTubs extends Controller {
 
 		$arr_rows_for_tpl = $this->xml_get_rows($xmlArr, $this->request->get['table']);
 		$arr_column_for_tpl = $this->xml_get_column($xmlArr, $this->request->get['table']);
+		$arr_tables_name = $this->xml_get_tables_name($xmlArr);
+
+		print_r($arr_tables_name);
 		
 		$data['arr_rows'] = $arr_rows_for_tpl;
 		$data['arr_column'] = $arr_column_for_tpl;
+		$data['arr_tables'] = $arr_tables_name;
 
 		foreach ($results as $key => $result) {
 			
 			$data['tubs'][] = array(	
 				'tube_id' => $result['tube_id'],
-				'tube_type' => $result['tube_type'],
+				'tube_name' => $result['tube_name'],
 				'edit'            => $this->url->link('catalog/tubs/edit', 'token=' . $this->session->data['token'] . '&tubs_id=' . $result['tube_id'] . $url, true)
 			);
 			
@@ -166,7 +182,7 @@ class ControllerCatalogTubs extends Controller {
 			$url .= '&table=' . $this->request->get['table'];
 		}
 
-		$data['sort_tube_type'] = $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . '&sort=tube_type' . $url, true);
+		$data['sort_tube_name'] = $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . '&sort=tube_name' . $url, true);
 		
 
 
@@ -181,6 +197,8 @@ class ControllerCatalogTubs extends Controller {
 			$url .= '&order=' . $this->request->get['order'];
 		}
 
+
+
 		$pagination = new Pagination();
 		$pagination->total = $tubs_total;
 		$pagination->page = $page;
@@ -193,10 +211,13 @@ class ControllerCatalogTubs extends Controller {
 
 		$data['sort'] = $sort;
 		$data['order'] = $order;
+		$data['filter_tube_name'] = $filter_tube_name;
+		$data['selected_table'] = $this->request->get['table'];
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
+		$data['token'] =$this->session->data['token'];
 
 
 		$this->response->setOutput($this->load->view('catalog/tubs_list', $data));
@@ -226,19 +247,13 @@ class ControllerCatalogTubs extends Controller {
 
 
 		$xmlArr = $this->xml();
-		$table_rows = $this->xml_get_rows($xmlArr, $this->request->get['table']);
 
 		$arr_rows_for_tpl = array(); // будет использовать в tpl как id для $tubs;
-		$index_table_rows = 0; // для вставки элементов массива  $arr_rows_for_tpl с ключом в виде (1)(2), чтобы через счетчик  получить их в tpl
-		foreach ($table_rows as $value) {
-			
-			$arr_rows_for_tpl[$index_table_rows] = $value;
-			$index_table_rows += 1;
-		}
-
+		
+		$arr_rows_for_tpl   = $this->xml_get_rows($xmlArr, $this->request->get['table']);
 		$arr_column_for_tpl = $this->xml_get_column($xmlArr, $this->request->get['table']);
 		
-		$data['arr_rows'] = $arr_rows_for_tpl;
+		$data['arr_rows']   = $arr_rows_for_tpl;
 		$data['arr_column'] = $arr_column_for_tpl;
 
 
@@ -305,12 +320,12 @@ class ControllerCatalogTubs extends Controller {
 
 		$data['token'] = $this->session->data['token'];
 
-		if (isset($this->request->post['tube_type'])) {
-			$data['tube_type'] = $this->request->post['tube_type'];
+		if (isset($this->request->post['tube_name'])) {
+			$data['tube_name'] = $this->request->post['tube_name'];
 		} elseif (!empty($tubs_info)) {
-			$data['tube_type'] = $tubs_info['tube_type'];
+			$data['tube_name'] = $tubs_info['tube_name'];
 		} else {
-			$data['tube_type'] = '';
+			$data['tube_name'] = '';
 		}
 
 		foreach ($arr_rows_for_tpl as $key) {
@@ -418,6 +433,15 @@ class ControllerCatalogTubs extends Controller {
 		}
 
 
+
+		return $arr_rows;
+	}
+
+	public function xml_get_tables_name($xml) {
+
+		foreach ($xml->object as $key => $value) {
+			$arr_rows[(string)$value['table']] = (string)$value['name'];
+		}
 
 		return $arr_rows;
 	}

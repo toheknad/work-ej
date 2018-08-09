@@ -24,21 +24,59 @@
       <button type="button" class="close" data-dismiss="alert">&times;</button>
     </div>
     <?php } ?>
-    <div class="panel panel-default">
+    <div class="panel panel-default" id="mainblock">
       <div class="panel-heading">
         <h3 class="panel-title"><i class="fa fa-list"></i> <?php echo $text_list; ?></h3>
       </div>
       <div class="panel-body">
+        <?php echo $ajax_form_url = '/admin/index.php?route=catalog/tubs&token='.$token.'&';?>
+        <div class="well">
+          <form action="<?php echo $ajax_form_url; ?>" method="GET" id="FormAjax">
+          <div class="row">
+            <div class="col-sm-4">
+              <div class="form-group">
+                <label class="control-label" for="input-name">Tube Name</label>
+                <input type="text" name="filter_tube_name" value="<?php echo $filter_tube_name; ?>" placeholder="" id="input-name" class="form-control" />
+              </div>
+
+             
+            </div>
+            <div class="col-sm-4">
+              <div class="form-group">
+                <label class="control-label" for="input-status">Models</label>
+                <select name="filter_models" id="input-status" class="form-control">
+                  <?php
+
+                    $result = '';
+                    foreach($arr_tables as $value => $name) {
+
+                      if($value == $selected_table)  {
+                      $result .= '<option value="' .$value. '" selected="selected" >' .$name. '</option>';
+                      } else $result .= '<option value="' .$value. '" >' .$name. '</option>';
+                    }
+
+                    echo $result;
+                  ?>
+                 <!-- <option value="tubs_1" selected="selected">MX_101</option>
+                  <option value="tubs_2">BRK_S0</option> -->
+                </select>
+              </div>
+              <button type="submit" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-filter"></i> Filter</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      
         <form action="<?php echo $delete; ?>" method="post" enctype="multipart/form-data" id="form-manufacturer">
           <div class="table-responsive">
             <table class="table table-bordered table-hover">
               <thead>
                 <tr>
                   <td style="width: 1px;" class="text-center"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" /></td>
-                  <td class="text-left"><?php if ($sort == 'tube_type') { ?>
-                    <a href="<?php echo $sort_tube_type; ?>" class="<?php echo strtolower($order); ?>">Tubs Type</a>
+                  <td class="text-left"><?php if ($sort == 'tube_name') { ?>
+                    <a href="<?php echo $sort_tube_name; ?>" class="<?php echo strtolower($order); ?>">Tubs Name</a>
                     <?php } else { ?>
-                    <a href="<?php echo $sort_tube_type; ?>">Tubs Type</a>
+                    <a href="<?php echo $sort_tube_name; ?>">Tubs Name</a>
                     <?php } ?>
                   </td>
                     <?php  
@@ -64,7 +102,7 @@
                     <input type="checkbox" name="selected[]" value="<?php echo $tub['tube_id']; ?>" />
                     <?php } ?></td>
 
-                      <td class="text-left"><?php echo $tub['tube_type']; ?></td>
+                      <td class="text-left"><?php echo $tub['tube_name']; ?></td>
 
                        <?php 
                        $result = '';
@@ -95,5 +133,71 @@
       </div>
     </div>
   </div>
+   <script type="text/javascript">
+$('#button-filter').on('click', function() { /*
+  var url = 'index.php?route=catalog/tubs&token=<?php echo $token; ?>';
+
+  var filter_tube_name = $('input[name=\'filter_tube_name\']').val();
+
+  if (filter_tube_name) {
+    url += '&filter_tube_name=' + encodeURIComponent(filter_tube_name);
+  }
+
+  var filter_models = $('select[name=\'filter_models\']').val();
+
+  if (filter_models != '*') {
+    url += '&table=' + encodeURIComponent(filter_models);
+  }
+
+
+
+  location = url; */
+}); 
+//--></script>
+  <script type="text/javascript"><!--
+$('input[name=\'filter_name\']').autocomplete({
+  'source': function(request, response) {
+    $.ajax({
+      url: 'index.php?route=catalog/product/autocomplete&token=<?php echo $token; ?>&filter_name=' +  encodeURIComponent(request),
+      dataType: 'json',
+      success: function(json) {
+        response($.map(json, function(item) {
+          return {
+            label: item['name'],
+            value: item['product_id']
+          }
+        }));
+      }
+    });
+  },
+  'select': function(item) {
+    $('input[name=\'filter_name\']').val(item['label']);
+  }
+});
+
+$('#FormAjax').submit(function(){ 
+  var action = $(this).attr('action');
+  var form_data = $(this).serialize();
+
+   $.ajax({
+    url: action,
+    type: 'GET',
+    data: form_data,        
+    datatype: "html",         
+    success: function (data) {
+
+      var form_content = $(data).find("#mainblock").html();
+
+
+      $("#mainblock").html(form_content);
+      alert(data);
+    }     
+  });
+
+   alert(action+form_data);
+
+  return false;
+  }); 
+//--></script>
 </div>
 <?php echo $footer; ?>
