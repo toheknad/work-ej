@@ -28,51 +28,34 @@
           <div class="form-group required">
             <label class="col-sm-2 control-label" for="input-name">Tube Type</label>
             <div class="col-sm-10">
-              <input type="text" name="tube_type" value="<?php echo $tube_type; ?>" placeholder="<?php echo $entry_name; ?>" id="input-name" class="form-control" />
+              <input type="text" name="tube_type" value="<?php echo $tube_type; ?>"  id="input-name" class="form-control" />
               <?php if ($error_name) { ?>
               <div class="text-danger"><?php echo $error_name; ?></div>
               <?php } ?>
             </div>
           </div>
 
-          <div class="form-group ">
-            <label class="col-sm-2 control-label" for="input-name">Selector Switch A</label>
-            <div class="col-sm-10">
-              <input type="text" name="selector_switch_a" value="<?php echo $selector_switch_a; ?>" placeholder="<?php echo $entry_name; ?>" id="input-name" class="form-control" />
-              <?php if ($error_name) { ?>
-              <div class="text-danger"><?php echo $error_name; ?></div>
-              <?php } ?>
-            </div>
-          </div>
+          <?php 
+            
+            $result = '';
+             
+            for ($i = 0; $i < count($arr_column); $i++) {
+               
+                $result .= '<div class="form-group ">';
+                $result .= '<label class="col-sm-2 control-label" for="input-name">' .$arr_column[$i]. '</label>';
+                $result .= '<div class="col-sm-10">';
+                $result .=  '<input type="text" name="' .$arr_rows[$i]. '" value="'. $$arr_rows[$i] .'" id="input-name" class="form-control" />';
+                  if ($error_name) { 
+                  $result .= '<div class="text-danger">' .$error_name. '</div>';
+                   } 
+               $result .= '</div>
+              </div>';
+            } 
 
-          <div class="form-group ">
-            <label class="col-sm-2 control-label" for="input-name">Selector Switch B</label>
-            <div class="col-sm-10">
-              <input type="text" name="selector_switch_b" value="<?php echo $selector_switch_b; ?>" placeholder="<?php echo $entry_name; ?>" id="input-name" class="form-control" />
-              <?php if ($error_name) { ?>
-              <div class="text-danger"><?php echo $error_name; ?></div>
-              <?php } ?>
-            </div>
-          </div>
-
-          <div class="form-group ">
-            <label class="col-sm-2 control-label" for="input-name">Filament</label>
-            <div class="col-sm-10">
-              <input type="text" name="filament" value="<?php echo $filament; ?>" placeholder="<?php echo $entry_name; ?>" id="input-name" class="form-control" />
-              <?php if ($error_name) { ?>
-              <div class="text-danger"><?php echo $error_name; ?></div>
-              <?php } ?>
-            </div>
-          </div>
-
-        
-          
-          <div class="form-group">
-            <label class="col-sm-2 control-label" for="input-sort-order"><?php echo $entry_sort_order; ?></label>
-            <div class="col-sm-10">
-              <input type="text" name="sort_order" value="<?php echo $sort_order; ?>" placeholder="<?php echo $entry_sort_order; ?>" id="input-sort-order" class="form-control" />
-            </div>
-          </div>
+            echo $result;
+           
+          ?>
+                         
         </form>
       </div>
     </div>

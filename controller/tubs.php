@@ -52,7 +52,9 @@ class ControllerCatalogTubs extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
-		$url .= '&table=tubs_1';
+		if (isset($this->request->get['table'])) {
+			$url .= '&table=' . $this->request->get['table'];
+		} else $url .= '&table=tubs_1';
 
 		$data['breadcrumbs'] = array();
 
@@ -66,8 +68,8 @@ class ControllerCatalogTubs extends Controller {
 			'href' => $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true)
 		);
 
-		$data['add'] = $this->url->link('catalog/tubs/add', 'token=' . $this->session->data['token'] . $url, true);
-		$data['delete'] = $this->url->link('catalog/tubs/delete', 'token=' . $this->session->data['token'] . $url, true);
+		$data['add'] = $this->url->link('catalog/tubs/add', 'token=' . $this->session->data['token'] . $url, true . $this->request->get['table']);
+		$data['delete'] = $this->url->link('catalog/tubs/delete', 'token=' . $this->session->data['token'] . $url, true . $this->request->get['table']);
 
 		$data['tubs'] = array();
 		$data['arr_rows'] = array(); // передаем в tpl массив со строками
@@ -84,50 +86,34 @@ class ControllerCatalogTubs extends Controller {
 		$results = $this->model_catalog_tubs->getTubs($filter_data, $this->request->get['table']);
 
 		$xmlArr = $this->xml();
-		$table_rows = $this->xml_get_rows($xmlArr, $this->request->get['table']);
+		
 
-		$indexRows = 0; // для того чтобы отслеживать в какой товар мы добавляем
+		$arr_rows_for_tpl = array(); // будет использовать в tpl как id для $tubs;			
+		$arr_column_for_tpl = array(); // название строк таблицы ( Tube type, Selector)
+		
 
-		$arr_rows_for_tpl = array(); // будет использовать в tpl как id для $tubs;
-		$index_table_rows = 0; // для вставки элементов массива  $arr_rows_for_tpl с ключом в виде (1)(2), чтобы через счетчик  получить их в tpl
-		foreach ($table_rows as $value) {
-			
-			$arr_rows_for_tpl[$index_table_rows] = $value;
-			$index_table_rows += 1;
-		}
-
-		$arr_rows_for_tpl[count($table_rows)] = 'tube_id'; // добавляем общие поля для всех таблиц
-		$arr_rows_for_tpl[count($table_rows) + 1] = 'tube_tupe';// получается глупо, нужно будет потом изменить.
-		$arr_rows_for_tpl[count($table_rows) + 2] = 'edit';
+		$arr_rows_for_tpl = $this->xml_get_rows($xmlArr, $this->request->get['table']);
+		$arr_column_for_tpl = $this->xml_get_column($xmlArr, $this->request->get['table']);
 		
 		$data['arr_rows'] = $arr_rows_for_tpl;
-		foreach ($results as $result) {
+		$data['arr_column'] = $arr_column_for_tpl;
 
+		foreach ($results as $key => $result) {
 			
-
-			$data['tubs'][] = array(
-		
+			$data['tubs'][] = array(	
 				'tube_id' => $result['tube_id'],
 				'tube_type' => $result['tube_type'],
 				'edit'            => $this->url->link('catalog/tubs/edit', 'token=' . $this->session->data['token'] . '&tubs_id=' . $result['tube_id'] . $url, true)
 			);
-
-				for ($i = 0; $i < count($table_rows) ; $i++) { 
-
-					$name = $table_rows[$i];
-					$value =  $result["$table_rows[$i]"];
-					$data['tubs'][$indexRows]["$name"] = $value;
-				}
-				
-				$indexRows = $indexRows + 1;
+			
+				foreach ($arr_rows_for_tpl as $id => $value) {
+						$data['tubs'][$key][$arr_rows_for_tpl[$id]] = $result[$arr_rows_for_tpl[$id]];			
+				}				
 		}
 
-		echo '<pre>'; 
-		print_r ($arr_rows_for_tpl);
-		echo '</pre>';
+	
+
 		
-
-
 		$data['heading_title'] = $this->language->get('heading_title');
 
 		$data['text_list'] = $this->language->get('text_list');
@@ -176,10 +162,12 @@ class ControllerCatalogTubs extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
+		if (isset($this->request->get['table'])) {
+			$url .= '&table=' . $this->request->get['table'];
+		}
+
 		$data['sort_tube_type'] = $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . '&sort=tube_type' . $url, true);
-		$data['sort_selector_switch_a'] = $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . '&sort=selector_switch_a' . $url, true);
-		$data['sort_selector_switch_b'] = $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . '&sort=selector_switch_b' . $url, true);
-		$data['sort_filament'] = $this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . '&sort=filament' . $url, true);
+		
 
 
 
@@ -210,6 +198,7 @@ class ControllerCatalogTubs extends Controller {
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['footer'] = $this->load->controller('common/footer');
 
+
 		$this->response->setOutput($this->load->view('catalog/tubs_list', $data));
 	}
 
@@ -227,16 +216,31 @@ class ControllerCatalogTubs extends Controller {
 		$data['text_amount'] = $this->language->get('text_amount');
 
 		$data['entry_name'] = $this->language->get('entry_name');
-		$data['entry_store'] = $this->language->get('entry_store');
-		$data['entry_keyword'] = $this->language->get('entry_keyword');
-		$data['entry_image'] = $this->language->get('entry_image');
-		$data['entry_sort_order'] = $this->language->get('entry_sort_order');
+		
 		$data['entry_customer_group'] = $this->language->get('entry_customer_group');
 
 		$data['help_keyword'] = $this->language->get('help_keyword');
 
 		$data['button_save'] = $this->language->get('button_save');
 		$data['button_cancel'] = $this->language->get('button_cancel');
+
+
+		$xmlArr = $this->xml();
+		$table_rows = $this->xml_get_rows($xmlArr, $this->request->get['table']);
+
+		$arr_rows_for_tpl = array(); // будет использовать в tpl как id для $tubs;
+		$index_table_rows = 0; // для вставки элементов массива  $arr_rows_for_tpl с ключом в виде (1)(2), чтобы через счетчик  получить их в tpl
+		foreach ($table_rows as $value) {
+			
+			$arr_rows_for_tpl[$index_table_rows] = $value;
+			$index_table_rows += 1;
+		}
+
+		$arr_column_for_tpl = $this->xml_get_column($xmlArr, $this->request->get['table']);
+		
+		$data['arr_rows'] = $arr_rows_for_tpl;
+		$data['arr_column'] = $arr_column_for_tpl;
+
 
 		if (isset($this->error['warning'])) {
 			$data['error_warning'] = $this->error['warning'];
@@ -309,39 +313,19 @@ class ControllerCatalogTubs extends Controller {
 			$data['tube_type'] = '';
 		}
 
-		if (isset($this->request->post['selector_switch_a'])) {
-			$data['selector_switch_a'] = $this->request->post['selector_switch_a'];
-		} elseif (!empty($tubs_info)) {
-			$data['selector_switch_a'] = $tubs_info['selector_switch_a'];
-		} else {
-			$data['selector_switch_a'] = '';
-		}
+		foreach ($arr_rows_for_tpl as $key) {
+			
+			if (isset($this->request->post["$key"])) {
+			$data["$key"] = $this->request->post["$key"];
+			} elseif (!empty($tubs_info)) {
+				$data["$key"] = $tubs_info["$key"];
+			} else {
+				$data["$key"] = '';
+			}
 
-		if (isset($this->request->post['selector_switch_b'])) {
-			$data['selector_switch_b'] = $this->request->post['selector_switch_b'];
-		} elseif (!empty($tubs_info)) {
-			$data['selector_switch_b'] = $tubs_info['selector_switch_b'];
-		} else {
-			$data['selector_switch_b'] = '';
 		}
-
-		if (isset($this->request->post['filament'])) {
-			$data['filament'] = $this->request->post['filament'];
-		} elseif (!empty($tubs_info)) {
-			$data['filament'] = $tubs_info['filament'];
-		} else {
-			$data['filament'] = '';
-		}
-
 		
-
-		if (isset($this->request->post['sort_order'])) {
-			$data['sort_order'] = $this->request->post['sort_order'];
-		} elseif (!empty($tubs_info)) {
-			$data['sort_order'] = $tubs_info['sort_order'];
-		} else {
-			$data['sort_order'] = '';
-		}
+		
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
@@ -358,32 +342,10 @@ class ControllerCatalogTubs extends Controller {
 		$this->load->model('catalog/tubs');
 
 
-		$xmlDB = "<database>
-		<object table='tubs_1'>
-		   
-		    <field key='selector_switch_a' dbtype='varchar' />
-		    <field key='selector_switch_b' dbtype='varchar' />
-		    <field key='filament' dbtype='int' />
-		   
-		</object>
-		<object table='tubs_2'>
-		   
-		    <field key='param1' dbtype='varchar' />
-		    <field key='param2' dbtype='varchar' />
-		    <field key='filament' dbtype='int' />
-		   
-		</object>
-
-		</database>";
+		
 
 		$xmlArr = $this->xml();
-		
-		echo '<pre>';
-		print_r($xmlArr->object[0]->field[1]);
-		echo '</pre>';
-		
-
-
+	
 		if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
 			$this->model_catalog_tubs->addTubs($this->request->post, $xmlArr, $this->request->get['table']);
 
@@ -403,7 +365,11 @@ class ControllerCatalogTubs extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			//$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true));
+			if (isset($this->request->get['table'])) {
+				$url .= '&table=' . $this->request->get['table'];
+			}
+
+			$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true ));
 		}
 
 		$this->getForm();
@@ -412,18 +378,19 @@ class ControllerCatalogTubs extends Controller {
 	public function xml() {
 
 		$xmlDB = "<database>
-		<object table='tubs_1'>
+		<object table='tubs_1' name='MX_10A'>
 		   
-		    <field key='selector_switch_a' dbtype='varchar' />
-		    <field key='selector_switch_b' dbtype='varchar' />
-		    <field key='filament' dbtype='int' />
+		    <field key='selector_switch_a' dbtype='varchar' name='Selector Switch A' />
+		    <field key='selector_switch_b' dbtype='varchar' name='Selector Switch B' />
+		    <field key='filament' dbtype='int' name='Filament' />
 		   
 		</object>
-		<object table='tubs_2'>
+		<object table='tubs_2' name='NO_BC6'>
 		   
-		    <field key='param1' dbtype='varchar' />
-		    <field key='param2' dbtype='varchar' />
-		    <field key='filament' dbtype='int' />
+		    <field key='filament_voltage' dbtype='varchar' name='Filament Voltage' />
+		    <field key='potentiomenters_l' dbtype='varchar' name='Potentiomenters L' />
+		    <field key='potentiomenters_r' dbtype='int'   name='Potentiomenters R' />
+		    <field key='rest' dbtype='int'   name='Rest' />
 		   
 		</object>
 
@@ -446,7 +413,29 @@ class ControllerCatalogTubs extends Controller {
 
 		foreach ($xml->object[$indexTable]->field as $field) {
 
-			$arr_rows[] = $field['key'];
+			$arr_rows[] = (string)$field['key'];
+							 		
+		}
+
+
+
+		return $arr_rows;
+	}
+
+	public function xml_get_column($xml,$table_name) {
+		$buffer = 0; // не получается вставить динамически имя переменной как ${$type['key']}, поэтому сделал эту переменную как буфер.
+
+		$indexTable = 0;
+		for($i=0; $i <= count($xml->object); $i++) {
+			if($xml->object[$i]['table'] == $table_name) {
+				$indexTable = $i;
+				break;
+			}
+		}
+
+		foreach ($xml->object[$indexTable]->field as $field) {
+
+			$arr_rows[] = (string)$field['name'];
 							 		
 		}
 
@@ -454,14 +443,17 @@ class ControllerCatalogTubs extends Controller {
 	}
 
 	public function edit() {
+		$xmlArr = $this->xml();
 		$this->load->language('catalog/tubs');
 
 		$this->document->setTitle($this->language->get('heading_title'));
 
 		$this->load->model('catalog/tubs');
 
+		$xmlArr = $this->xml();
+
 		if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
-			$this->model_catalog_tubs->editTub($this->request->get['tubs_id'], $this->request->post);
+			$this->model_catalog_tubs->editTub($this->request->get['tubs_id'], $this->request->post, $xmlArr, $this->request->get['table']);
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -482,7 +474,11 @@ class ControllerCatalogTubs extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true));
+			if (isset($this->request->get['table'])) {
+				$url .= '&table=' . $this->request->get['table'];
+			}
+
+			$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true ));
 		}
 
 		$this->getForm();
@@ -497,7 +493,7 @@ class ControllerCatalogTubs extends Controller {
 
 		if (isset($this->request->post['selected']) ) {
 			foreach ($this->request->post['selected'] as $tubs_id) {
-				$this->model_catalog_tubs->deleteTubs($tubs_id);
+				$this->model_catalog_tubs->deleteTubs($tubs_id, $this->request->get['table']);
 			}
 
 			$this->session->data['success'] = $this->language->get('text_success');
@@ -516,7 +512,11 @@ class ControllerCatalogTubs extends Controller {
 				$url .= '&page=' . $this->request->get['page'];
 			}
 
-			$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true));
+			if (isset($this->request->get['table'])) {
+				$url .= '&table=' . $this->request->get['table'];
+			}
+
+			$this->response->redirect($this->url->link('catalog/tubs', 'token=' . $this->session->data['token'] . $url, true ));
 		}
 
 		$this->getList();

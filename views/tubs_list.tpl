@@ -39,56 +39,25 @@
                     <a href="<?php echo $sort_tube_type; ?>" class="<?php echo strtolower($order); ?>">Tubs Type</a>
                     <?php } else { ?>
                     <a href="<?php echo $sort_tube_type; ?>">Tubs Type</a>
-                    <?php } ?></td>
-                    <? /*php 
+                    <?php } ?>
+                  </td>
+                    <?php  
                       $result = '';
-                        for($i=0; $i < count($arr_rows); $i++) {
-
-                        if($tub == $arr_rows['4']) {
-                          continue;
-                        } else {
+                        for($i=0; $i < count($arr_column); $i++) {
+                        $buffer = $arr_column[$i];
                          $result .= '<td class="text-right">
-                                    <a href="<?php echo $sort_selector_switch_a; ?>">Selector switch A</a>
+                                     <a href="<?php echo $sort_selector_switch_a; ?>">' . $arr_column[$i] . '</a>
                                     </td>';
                         }
-                      }
-
-                      echo $result;
-                      echo count($arr_rows)
-                        */
+                      echo $result;                                        
                     ?>
-                  <td class="text-right">
-                    <a href="<?php echo $sort_selector_switch_a; ?>">Selector switch A</a>
-                   </td>
-
-                    <td class="text-right">
-                    <a href="<?php echo $sort_selector_switch_b; ?>">Selector switch B</a>
-                    </td>
-
-                     <td class="text-right">
-                    <a href="<?php echo $sort_filament; ?>">Filament</a>
-                    </td>
-
                   <td class="text-right"><?php echo $column_action; ?></td>
                 </tr>
               </thead>
               <tbody>
-
                 <?php  if ($tubs) { ?>
                 <?php foreach ($tubs as $tub) { ?>
-                <tr>
-                   <?php 
-
-                       
-
-
-                        echo "<pre>";
-                          print_r ($tub);
-                        echo "</pre>";
-                      
-                      
-                   ?>
-
+                <tr>         
                   <td class="text-center"><?php if (in_array($tub['tube_id'], $selected)) { ?>
                     <input type="checkbox" name="selected[]" value="<?php echo $tub['tube_id']; ?>" checked="checked" />
                     <?php } else { ?>
@@ -97,22 +66,15 @@
 
                       <td class="text-left"><?php echo $tub['tube_type']; ?></td>
 
-                       <?php /* 
+                       <?php 
+                       $result = '';
                         for($i=0; $i < count($arr_rows); $i++) {
-
-                        if($tub == $arr_rows['4']) {
-                          continue;
-                        } else {
-                         $result .= '<td class="text-right"><?php echo $tub[]; ?></td>'
+                         $result .= '<td class="text-right">' . $tub["$arr_rows[$i]"]. '</td>';
                         }
-                      }
-                        */
-                    ?>
-                  
-                  <td class="text-right"><?php echo $tub['selector_switch_a']; ?></td>
-                  
-                  <td class="text-right"><?php echo $tub['selector_switch_b']; ?></td>
-                  <td class="text-right"><?php echo $tub['filament'];  ?></td>
+                      
+                        echo $result;
+             
+                    ?>           
                   <td class="text-right"><a href="<?php echo $tub['edit']; ?>" data-toggle="tooltip" title="<?php echo $button_edit; ?>" class="btn btn-primary"><i class="fa fa-pencil"></i></a></td>
 
                 </tr>

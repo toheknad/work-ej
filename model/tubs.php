@@ -55,34 +55,15 @@ class ModelCatalogTubs extends Model {
 
 	public function addTubs($data, $xml, $table_name) {
 
-		echo $table_name;
+		
 		$indexTable = 0;
+
 		for($i=0; $i <= count($xml->object); $i++) {
 			if($xml->object[$i]['table'] == $table_name) {
 				$indexTable = $i;
 				break;
 			}
 		}
-
-		echo $indexTable;
-		$buffer = 0; // не получается вставить динамически имя переменной как ${$type['key']}, поэтому сделал эту переменную как буфер.
-		foreach ($xml->object[$indexTable]->field as $field) {
-			$buffer = $field['key'];
-			$buffer_value = $data["$buffer"];
-			if($field['dbtype'] == 'int'){
-				${$buffer} = (int)$buffer_value;
-			}else{
-
-				${$buffer} = $this->db->escape($buffer_value);
-				echo $buffer;
-						 	
-			}
-		}
-		
-		echo '<pre>';
-		echo $selector_switch_b; 
-		echo '</pre>';
-		
 
 		$tube_type         = $this->db->escape($data['tube_type']);	
 
@@ -98,18 +79,8 @@ class ModelCatalogTubs extends Model {
 			}else{
 				$sql .= " ,". $name." = '".$this->db->escape($buffer_value)."'";
 			}
-		}
-
-
+		}	
 		
-		/*$sql = "
-		INSERT INTO " . DB_PREFIX . "tubs_1 
-		SET tube_type     = '$tube_type',
-		selector_switch_a = '$selector_switch_a',
-		selector_switch_b = '$selector_switch_b',
-		filament          = '$filament';
-		";*/
-
 		echo $sql;
 	
 		$this->db->query($sql);
@@ -122,30 +93,41 @@ class ModelCatalogTubs extends Model {
 	}
 	
 
-	public function editTub($tubs_id, $data) {
+	public function editTub($tubs_id, $data, $xml, $table_name) {
+
+		$indexTable = 0;
+
+		for($i=0; $i <= count($xml->object); $i++) {
+			if($xml->object[$i]['table'] == $table_name) {
+				$indexTable = $i;
+				break;
+			}
+		}
 
 		$tube_type         = $this->db->escape($data['tube_type']);
-		$sort_order        = $this->db->escape($data['sort_order']);
-		$selector_switch_a = $this->db->escape($data['selector_switch_a']);
-		$selector_switch_b = $this->db->escape($data['selector_switch_b']);
-		$filament          = $this->db->escape($data['filament']);
-		$sort_order        = $this->db->escape($data['sort_order']);
+		
 
 		$sql = "
-		UPDATE ". DB_PREFIX ."tubs_1
-		SET tube_type     = '$tube_type',
-		selector_switch_a = '$selector_switch_a',
-		selector_switch_b = '$selector_switch_b',
-		filament          = '$filament',
-		sort_order        = '$sort_order'
-		WHERE tube_id     = '$tubs_id';
-		";
+		UPDATE ". DB_PREFIX . "$table_name 
+		SET tube_type = '$tube_type'";
+
+		foreach ($xml->object[$indexTable]->field as $field) {
+			$name = $field['key'];
+			$buffer_value = $data["$name"];
+			if($field['dbtype'] == 'int'){
+				$sql .= " ,". $name." = '".(int)$buffer_value."'";
+			}else{
+				$sql .= " ,". $name." = '".$this->db->escape($buffer_value)."'";
+			}
+		}	
+
+		$sql .= "WHERE tube_id     = '$tubs_id';";
 
 		$this->db->query($sql);	
 	}
 
-	public function deleteTubs($tubs_id) {
-		$this->db->query("DELETE FROM " . DB_PREFIX . "tubs_1 WHERE tube_id = '" . (int)$tubs_id . "'");
+	public function deleteTubs($tubs_id, $table_name) {
+		$this->db->query("DELETE FROM " . DB_PREFIX . "$table_name WHERE tube_id = '" . (int)$tubs_id . "'");
 
 		
 	}	
